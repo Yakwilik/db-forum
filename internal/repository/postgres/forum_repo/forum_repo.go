@@ -17,17 +17,21 @@ type ForumRepo struct {
 
 func (f *ForumRepo) CreateForum(forum models.Forum) (createdForum models.Forum, forumErr *forum_errors.ForumError) {
 	forumErr = &forum_errors.ForumError{Code: forum_errors.Unknown}
-	forumQuery, err := f.db.Query(`insert into  forums (title, "user", slug) values ($1, $2, $3) returning *;`, forum.Title, forum.User, forum.Slug)
+	forumQuery, err := f.db.Query(`insert into  forums (title, "user", slug) values ($1, (SELECT nickname FROM users WHERE nickname = $2), $3) returning *;`, forum.Title, forum.User, forum.Slug)
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok {
 			forumErr.Reason = pqErr
 			log.Printf("pq error: %v", pqErr.Code.Name())
 			switch pqErr.Code.Name() {
+			case postgres.NOT_NULL_VIOLATION:
+				fallthrough
+			case postgres.FOREIGN_KEY_VIOLATION:
+				forumErr.Code = forum_errors.CantFindUser
+				return createdForum, forumErr
 			case postgres.UNIQUE_VIOLATION:
 				forumErr.Code = forum_errors.ForumAlreadyExists
 				return createdForum, forumErr
-			case postgres.FOREIGN_KEY_VIOLATION:
-				forumErr.Code = forum_errors.CantFindUser
+			default:
 				return createdForum, forumErr
 			}
 		}

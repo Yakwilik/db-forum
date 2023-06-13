@@ -9,6 +9,7 @@ import (
 const (
 	UNIQUE_VIOLATION      = "unique_violation"
 	FOREIGN_KEY_VIOLATION = "foreign_key_violation"
+	NOT_NULL_VIOLATION    = "not_null_violation"
 )
 
 type Config struct {
