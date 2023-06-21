@@ -5,6 +5,7 @@ import (
 	"github.com/db-forum.git/internal/handler"
 	"github.com/db-forum.git/internal/repository/postgres"
 	"github.com/db-forum.git/internal/repository/postgres/forum_repo"
+	"github.com/db-forum.git/internal/repository/postgres/thread_repo"
 	"github.com/db-forum.git/internal/repository/postgres/user_repo"
 	"github.com/db-forum.git/internal/services"
 	"github.com/db-forum.git/pkg/repository"
@@ -30,10 +31,12 @@ func NewForum() (forum *Forum, err error) {
 	}
 	userRepo, _ := user_repo.NewUserRepo(dbConn)
 	forumRepo, _ := forum_repo.NewForumRepo(dbConn)
-	repo := &repository.Repository{User: userRepo, Forum: forumRepo}
+	threadRepo, _ := thread_repo.NewThreadRepo(dbConn)
+	repo := &repository.Repository{User: userRepo, Forum: forumRepo, Thread: threadRepo}
 	userService := services.NewUserService(repo)
 	forumService := services.NewForumService(repo)
-	service := services.New(userService, forumService)
+	threadService := services.NewThreadService(repo)
+	service := services.New(userService, forumService, threadService)
 	h, err := handler.NewHandler(service, "/api")
 
 	if err != nil {

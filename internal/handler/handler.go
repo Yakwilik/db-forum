@@ -11,9 +11,8 @@ import (
 
 const (
 	Nickname        = "NICKNAME"
-	PostID          = "POST_ID"
-	CommentID       = "COMMENT_ID"
-	UserLogin       = "USER_LOGIN"
+	Slug            = "SLUG"
+	SlugOrId        = "SLUG_OR_ID"
 	ApplicationJSON = "application/json"
 )
 
@@ -43,5 +42,16 @@ func (h *Handler) InitRoutes() *mux.Router {
 
 	forumRouter := h.mux.PathPrefix("/forum").Subrouter()
 	forumRouter.HandleFunc("/create", h.CreateForum).Methods("POST")
+	forumRouter.HandleFunc(fmt.Sprintf("/{%s}/details", Slug), h.GetForum).Methods("GET")
+	forumRouter.HandleFunc(fmt.Sprintf("/{%s}/create", Slug), h.CreateThreadInForum).Methods("POST")
+	forumRouter.HandleFunc(fmt.Sprintf("/{%s}/threads", Slug), h.GetThreadsOfForum).Methods("GET")
+	forumRouter.HandleFunc(fmt.Sprintf("/{%s}/users", Slug), h.GetUsersOfForum).Methods("GET")
+
+	threadRouter := h.mux.PathPrefix("/thread").Subrouter()
+	threadRouter.HandleFunc(fmt.Sprintf("/{%s}/create", SlugOrId), h.CreatePosts).Methods("POST")
+	threadRouter.HandleFunc(fmt.Sprintf("/{%s}/vote", SlugOrId), h.Vote).Methods("POST")
+	threadRouter.HandleFunc(fmt.Sprintf("/{%s}/details", SlugOrId), h.GetThread).Methods("GET")
+	threadRouter.HandleFunc(fmt.Sprintf("/{%s}/posts", SlugOrId), h.GetPosts).Methods("GET")
+
 	return h.mux
 }

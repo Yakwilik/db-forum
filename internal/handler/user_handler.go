@@ -7,7 +7,6 @@ import (
 	"github.com/db-forum.git/pkg/models"
 	"github.com/db-forum.git/pkg/utils"
 	"github.com/gorilla/mux"
-	"log"
 	"net/http"
 )
 
@@ -20,7 +19,6 @@ func (h *Handler) GetUser(writer http.ResponseWriter, request *http.Request) {
 	user, err := h.services.GetUser(nickname)
 
 	if err != nil {
-		log.Printf("ERROR REASON: %+v", err.Reason)
 		if err.Code == forum_errors.CantFindUser {
 			utils.JSONResponse(writer, http.StatusNotFound, utils.InterfaceMap{
 				"message": fmt.Sprintf("Can't find user by nickname: %s", nickname),

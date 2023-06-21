@@ -7,6 +7,8 @@ const (
 	Unknown
 	ForumAlreadyExists
 	CantFindForum
+	CantFindThread
+	ThreadAlreadyExists
 )
 
 type UserError struct {
@@ -24,5 +26,14 @@ type ForumError struct {
 }
 
 func (e *ForumError) Error() string {
+	return e.Reason.Error()
+}
+
+type ThreadError struct {
+	Reason error
+	Code   int32
+}
+
+func (e *ThreadError) Error() string {
 	return e.Reason.Error()
 }

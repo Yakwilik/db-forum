@@ -8,7 +8,6 @@ import (
 	"github.com/db-forum.git/pkg/forum_errors"
 	"github.com/db-forum.git/pkg/models"
 	"github.com/lib/pq"
-	"log"
 )
 
 type UserRepo struct {
@@ -49,7 +48,6 @@ func (u *UserRepo) GetExistingUsers(user models.User) (users models.Users, err e
 	}
 	err = scan.Rows(&users, query)
 	return users, err
-
 }
 
 func (u *UserRepo) GetUser(nickname string) (user models.User, userErr *forum_errors.UserError) {
@@ -82,7 +80,6 @@ func (u *UserRepo) UpdateUser(user models.User) (updatedUser models.User, userEr
 		user.Fullname, user.About, user.Email, user.Nickname)
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok {
-			log.Printf("pq Error: %v", pqErr)
 			switch pqErr.Code.Name() {
 			case postgres.UNIQUE_VIOLATION:
 				userErr.Code = forum_errors.ConflictingData
@@ -98,6 +95,5 @@ func (u *UserRepo) UpdateUser(user models.User) (updatedUser models.User, userEr
 		userErr.Reason = err
 		return models.User{}, userErr
 	}
-	log.Printf("updatedUser: %v", updatedUser)
 	return updatedUser, nil
 }

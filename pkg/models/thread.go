@@ -6,7 +6,7 @@ type ThreadUpdate struct {
 }
 
 type Thread struct {
-	Id int32 `json:"id"`
+	Id int64 `json:"id"`
 	ThreadUpdate
 	Author  string `json:"author"`
 	Forum   string `json:"forum"`

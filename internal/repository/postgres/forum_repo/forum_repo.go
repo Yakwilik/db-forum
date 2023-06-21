@@ -3,16 +3,55 @@ package forum_repo
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"github.com/blockloop/scan"
 	"github.com/db-forum.git/internal/repository/postgres"
 	"github.com/db-forum.git/pkg/forum_errors"
 	"github.com/db-forum.git/pkg/models"
 	"github.com/lib/pq"
-	"log"
+	"time"
 )
 
 type ForumRepo struct {
 	db *sql.DB
+}
+
+func (f *ForumRepo) GetForumThreads(slug string, limit int, since string, desc bool) (threads models.Threads, forumErr *forum_errors.ForumError) {
+	threads = make(models.Threads, 0)
+	values := []interface{}{slug}
+	sinceQuery := ""
+	if since != "" {
+		sinceQuery = "and created "
+		if desc {
+			sinceQuery += "<= $2"
+		} else {
+			sinceQuery += ">= $2"
+		}
+		values = append(values, since)
+	}
+
+	orderByQuery := "order by created "
+	if desc {
+		orderByQuery += "DESC "
+	}
+	if limit > 0 {
+		orderByQuery += fmt.Sprintf("LIMIT %d", limit)
+	}
+
+	query := fmt.Sprintf(`select id, title, author, forum, message, slug, created, votes
+								from threads where forum = $1 %s %s;`, sinceQuery, orderByQuery)
+	rows, err := f.db.Query(query, values...)
+	forumErr = &forum_errors.ForumError{Code: forum_errors.Unknown}
+	if err != nil {
+		forumErr.Reason = err
+		return threads, forumErr
+	}
+	err = scan.Rows(&threads, rows)
+	if err != nil {
+		forumErr.Reason = err
+		return threads, forumErr
+	}
+	return threads, nil
 }
 
 func (f *ForumRepo) CreateForum(forum models.Forum) (createdForum models.Forum, forumErr *forum_errors.ForumError) {
@@ -21,7 +60,6 @@ func (f *ForumRepo) CreateForum(forum models.Forum) (createdForum models.Forum, 
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok {
 			forumErr.Reason = pqErr
-			log.Printf("pq error: %v", pqErr.Code.Name())
 			switch pqErr.Code.Name() {
 			case postgres.NOT_NULL_VIOLATION:
 				fallthrough
@@ -45,7 +83,7 @@ func (f *ForumRepo) CreateForum(forum models.Forum) (createdForum models.Forum, 
 
 func (f *ForumRepo) GetForumInfo(slug string) (createdForum models.Forum, forumErr *forum_errors.ForumError) {
 	forumErr = &forum_errors.ForumError{Code: forum_errors.Unknown}
-	forumQuery, err := f.db.Query(`select slug, title, "user" from forums where slug = $1`, slug)
+	forumQuery, err := f.db.Query(`select slug, title, "user", threads, posts from forums where slug = $1`, slug)
 	if err != nil {
 		forumErr.Reason = err
 		return models.Forum{}, forumErr
@@ -62,11 +100,42 @@ func (f *ForumRepo) GetForumInfo(slug string) (createdForum models.Forum, forumE
 }
 
 func (f *ForumRepo) CreateThread(slug string, thread models.Thread) (createdThread models.Thread, forumErr *forum_errors.ForumError) {
-	//TODO implement me
-	panic("implement me")
+	forumErr = &forum_errors.ForumError{Code: forum_errors.Unknown}
+	if thread.Created == "" {
+		thread.Created = time.Now().Format(time.RFC3339)
+	}
+	query, err := f.db.Query(`insert into threads (title, 
+                     author, forum, message, 
+                     slug, created) values 
+				  	 	($1, 
+				  	 	(SELECT nickname FROM users WHERE nickname = $2),
+				  		(SELECT slug from forums where forums.slug = $3),
+				  		$4, $5, $6) returning *;`,
+		thread.Title, thread.Author, slug, thread.Message, thread.Slug, thread.Created)
+	if err != nil {
+		if pqErr, ok := err.(*pq.Error); ok {
+			forumErr.Reason = pqErr
+			switch pqErr.Code.Name() {
+			case postgres.FOREIGN_KEY_VIOLATION:
+				forumErr.Code = forum_errors.CantFindForum
+				return createdThread, forumErr
+			case postgres.NOT_NULL_VIOLATION:
+				forumErr.Code = forum_errors.CantFindUser
+				return createdThread, forumErr
+			default:
+				return createdThread, forumErr
+			}
+		}
+	}
+	err = scan.Row(&thread, query)
+	if err != nil {
+		forumErr.Reason = err
+		return createdThread, forumErr
+	}
+	return thread, nil
 }
 
-func (f *ForumRepo) GetForumUsers(slug string, limit int, since string, ask bool) (users models.Users, forumErr *forum_errors.ForumError) {
+func (f *ForumRepo) GetForumUsers(slug string, limit int, since string, desk bool) (users models.Users, forumErr *forum_errors.ForumError) {
 	//TODO implement me
 	panic("implement me")
 }
