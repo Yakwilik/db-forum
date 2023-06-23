@@ -44,7 +44,7 @@ func NewForum() (forum *Forum, err error) {
 	}
 	serv := server.NewServer(server.Config{
 		Host:           "127.0.0.1",
-		Port:           5050,
+		Port:           5000,
 		MaxHeaderBytes: 5000,
 	}, h.InitRoutes())
 

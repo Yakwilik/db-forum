@@ -16,6 +16,45 @@ type ForumRepo struct {
 	db *sql.DB
 }
 
+func (f *ForumRepo) Clear() (forumErr *forum_errors.ForumError) {
+	forumErr = &forum_errors.ForumError{
+		Reason: nil,
+		Code:   forum_errors.Unknown,
+	}
+	_, err := f.db.Exec(`TRUNCATE votes, posts, threads, forums, users CASCADE;`)
+	if err != nil {
+		forumErr.Reason = err
+		return forumErr
+	}
+
+	return nil
+}
+
+func (f *ForumRepo) GetServiceStatus() (status models.Status, forumErr *forum_errors.ForumError) {
+	q, err := f.db.Query("SELECT" +
+		"(SELECT COUNT(*) FROM users) as user," +
+		"(SELECT COUNT(*) FROM forums) as forum," +
+		"(SELECT COUNT(*) FROM threads) as thread," +
+		"(SELECT COUNT(*) FROM posts) as post;")
+
+	if err != nil {
+		return status, &forum_errors.ForumError{
+			Reason: err,
+			Code:   forum_errors.Unknown,
+		}
+	}
+	err = scan.Row(&status, q)
+
+	if err != nil {
+		return status, &forum_errors.ForumError{
+			Reason: err,
+			Code:   forum_errors.Unknown,
+		}
+	}
+
+	return status, nil
+}
+
 func (f *ForumRepo) GetForumThreads(slug string, limit int, since string, desc bool) (threads models.Threads, forumErr *forum_errors.ForumError) {
 	threads = make(models.Threads, 0)
 	values := []interface{}{slug}
@@ -135,9 +174,53 @@ func (f *ForumRepo) CreateThread(slug string, thread models.Thread) (createdThre
 	return thread, nil
 }
 
-func (f *ForumRepo) GetForumUsers(slug string, limit int, since string, desk bool) (users models.Users, forumErr *forum_errors.ForumError) {
-	//TODO implement me
-	panic("implement me")
+func (f *ForumRepo) GetForumUsers(slug string, limit int, since string, desc bool) (users models.Users, forumErr *forum_errors.ForumError) {
+	users = make(models.Users, 0)
+	values := []interface{}{slug}
+	sinceQuery := ""
+	if since != "" {
+		sinceQuery = "where users.nickname "
+		if desc {
+			sinceQuery += "< $2 "
+		} else {
+			sinceQuery += "> $2 "
+		}
+		values = append(values, since)
+	}
+	if desc {
+		sinceQuery += " order by users.nickname DESC "
+	} else {
+		sinceQuery += " order by users.nickname ASC "
+	}
+	if limit > 0 {
+		sinceQuery += fmt.Sprintf("LIMIT %d", limit)
+	}
+
+	query := fmt.Sprintf("select "+
+		"users.nickname, users.nickname, users.fullname, users.about, users.email "+
+		"from users INNER JOIN "+
+		"(SELECT DISTINCT author from posts where forum = $1 UNION SELECT DISTINCT author from threads where forum = $1) "+
+		"as authors on users.nickname = authors.author %s;", sinceQuery)
+
+	queryResult, err := f.db.Query(query, values...)
+
+	if err != nil {
+		return users, &forum_errors.ForumError{
+			Reason: err,
+			Code:   forum_errors.Unknown,
+		}
+	}
+
+	err = scan.Rows(&users, queryResult)
+	if err != nil {
+		return users, &forum_errors.ForumError{
+			Reason: err,
+			Code:   forum_errors.Unknown,
+		}
+	}
+
+	return users, nil
+
 }
 
 func NewForumRepo(dbConn *sql.DB) (repo *ForumRepo, err error) {

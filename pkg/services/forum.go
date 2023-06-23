@@ -11,4 +11,6 @@ type Forum interface {
 	CreateThread(slug string, thread models.Thread) (createdThread models.Thread, forumErr *forum_errors.ForumError)
 	GetForumUsers(slug string, limit int, since string, desk bool) (users models.Users, forumErr *forum_errors.ForumError)
 	GetForumThreads(slug string, limit int, since string, desk bool) (threads models.Threads, forumErr *forum_errors.ForumError)
+	GetServiceStatus() (status models.Status, forumErr *forum_errors.ForumError)
+	Clear() (forumErr *forum_errors.ForumError)
 }

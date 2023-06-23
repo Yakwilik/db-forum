@@ -9,7 +9,7 @@ type Post struct {
 	Parent int64  `json:"parent"`
 	Author string `json:"author"`
 	PostUpdate
-	IsEdited bool   `json:"isEdited"`
+	IsEdited bool   `json:"isEdited" db:"is_edited"`
 	Forum    string `json:"forum"`
 	Thread   int32  `json:"thread"`
 	Created  string `json:"created"`
@@ -18,8 +18,8 @@ type Post struct {
 type Posts []Post
 
 type PostFull struct {
-	Post   `json:"post"`
-	User   `json:"author"`
-	Thread `json:"thread"`
-	Forum  `json:"forum"`
+	Post    `json:"post"`
+	*User   `json:"author,omitempty"`
+	*Thread `json:"thread,omitempty"`
+	*Forum  `json:"forum,omitempty"`
 }

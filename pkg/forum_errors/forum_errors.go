@@ -9,6 +9,7 @@ const (
 	CantFindForum
 	CantFindThread
 	ThreadAlreadyExists
+	CantFindPost
 )
 
 type UserError struct {

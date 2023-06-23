@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS
         forum citext REFERENCES forums(slug),
         thread_id bigserial REFERENCES threads(id),
         created timestamp with time zone DEFAULT now(),
-        path text
+        path bigint[] DEFAULT ARRAY []::INTEGER[]
 );
 
 CREATE TABLE IF NOT EXISTS
@@ -83,13 +83,10 @@ CREATE TRIGGER update_votes_on_update
     EXECUTE FUNCTION update_thread_on_vote_update();
 
 
+-- триггер для создания пути в дереве комментариев
 CREATE OR REPLACE FUNCTION update_path() RETURNS TRIGGER AS $$
 BEGIN
-    IF (NEW.parent = 0) THEN
-        NEW.path := NEW.id::text;
-    ELSE
-        NEW.path := (SELECT path FROM posts WHERE id = NEW.parent) || '.' || NEW.id;
-    END IF;
+    NEW.path = (SELECT path FROM posts WHERE id = new.parent) || new.id;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -97,3 +94,48 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER update_path_trigger
     BEFORE INSERT OR UPDATE ON posts
     FOR EACH ROW EXECUTE PROCEDURE update_path();
+
+
+-- обновление числа постов в форуме
+CREATE OR REPLACE FUNCTION increment_forum_posts() RETURNS TRIGGER AS $$
+BEGIN
+    UPDATE forums
+    SET posts = posts + 1
+    WHERE slug = NEW.forum;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER increment_forum_posts_trigger
+    AFTER INSERT ON posts
+    FOR EACH ROW EXECUTE PROCEDURE increment_forum_posts();
+
+
+-- обновление числа веток в форуме
+CREATE OR REPLACE FUNCTION increment_forum_threads() RETURNS TRIGGER AS $$
+BEGIN
+    UPDATE forums
+    SET threads = threads + 1
+    WHERE slug = NEW.forum;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER increment_forum_threads_trigger
+    AFTER INSERT ON threads
+    FOR EACH ROW EXECUTE PROCEDURE increment_forum_threads();
+
+-- обновление состояния сообщения при изменении
+CREATE OR REPLACE FUNCTION update_is_edited() RETURNS TRIGGER AS $$
+BEGIN
+    IF OLD.message <> NEW.message THEN
+        NEW.is_edited = true;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER check_update_message
+    BEFORE UPDATE OF message ON posts
+    FOR EACH ROW
+EXECUTE PROCEDURE update_is_edited();

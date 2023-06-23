@@ -7,3 +7,10 @@ type Forum struct {
 	Posts   int64  `json:"posts,omitempty"`
 	Threads int32  `json:"threads,omitempty"`
 }
+
+type ServiceStatus struct {
+	User   int64 `json:"user"`
+	Forum  int64 `json:"forum"`
+	Thread int64 `json:"thread"`
+	Post   int64 `json:"post"`
+}

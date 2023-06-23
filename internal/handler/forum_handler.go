@@ -81,7 +81,21 @@ func (h *Handler) CreateThreadInForum(writer http.ResponseWriter, request *http.
 	utils.JSONResponse(writer, http.StatusCreated, newThread)
 }
 func (h *Handler) GetUsersOfForum(writer http.ResponseWriter, request *http.Request) {
-	writer.WriteHeader(http.StatusOK)
+	params := getRequestQueryParams(request)
+
+	users, forumErr := h.services.GetForumUsers(params.Slug, params.Limit, params.Since, params.Desc)
+
+	if forumErr != nil {
+		switch forumErr.Code {
+		case forum_errors.CantFindForum:
+			utils.JSONResponse(writer, http.StatusNotFound, utils.InterfaceMap{"message": "can't find forum"})
+		default:
+			utils.JSONResponse(writer, http.StatusInternalServerError, utils.InterfaceMap{"message": forumErr})
+		}
+		return
+	}
+
+	utils.JSONResponse(writer, http.StatusOK, users)
 }
 func (h *Handler) GetThreadsOfForum(writer http.ResponseWriter, request *http.Request) {
 	params := getRequestQueryParams(request)
