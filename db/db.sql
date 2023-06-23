@@ -10,8 +10,8 @@ CREATE TABLE IF NOT EXISTS
 );
 
 CREATE INDEX idx_users_nickname ON users USING HASH (nickname);
-CREATE INDEX idx_users_nickname_btree ON users USING btree (nickname varchar_pattern_ops);
-CREATE INDEX idx_users_email ON users USING HASH (email);
+-- CREATE INDEX idx_users_nickname_btree ON users USING btree (nickname varchar_pattern_ops);
+-- CREATE INDEX idx_users_email ON users USING HASH (email);
 
 
 CREATE TABLE IF NOT EXISTS
@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS
 );
 
 CREATE INDEX idx_threads_id_hash ON threads USING hash (id);
-CREATE INDEX idx_threads_created ON threads USING btree (created);
+-- CREATE INDEX idx_threads_created ON threads USING btree (created);
 
 
 CREATE TABLE IF NOT EXISTS
@@ -55,9 +55,9 @@ CREATE TABLE IF NOT EXISTS
 );
 
 CREATE INDEX idx_posts_id ON posts USING hash (id);
-CREATE INDEX idx_posts_id_btree ON posts using btree (id);
-CREATE INDEX idx_posts_created ON posts using btree (created);
-CREATE INDEX idx_posts_path ON posts using btree (path);
+-- CREATE INDEX idx_posts_id_btree ON posts using btree (id);
+-- CREATE INDEX idx_posts_created ON posts using btree (created);
+-- CREATE INDEX idx_posts_path ON posts using btree (path);
 
 CREATE TABLE IF NOT EXISTS
     votes (
