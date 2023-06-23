@@ -1,6 +1,7 @@
 package forum
 
 import (
+	"fmt"
 	"github.com/db-forum.git/internal/app/server"
 	"github.com/db-forum.git/internal/handler"
 	"github.com/db-forum.git/internal/repository/postgres"
@@ -10,6 +11,7 @@ import (
 	"github.com/db-forum.git/internal/services"
 	"github.com/db-forum.git/pkg/repository"
 	"log"
+	"time"
 )
 
 type Forum struct {
@@ -25,9 +27,15 @@ func NewForum() (forum *Forum, err error) {
 		DBName:   "postgres",
 	}
 	dbConn, err := postgres.NewPostgresDB(dbConfig)
-	if err != nil {
-		log.Println(err)
-		return forum, err
+	timer := time.NewTicker(1 * time.Second)
+	fmt.Println("begin")
+	for range timer.C {
+		if err == nil {
+			fmt.Println("repos initialized")
+			break
+		}
+		fmt.Println("waiting for DBs initialization")
+		dbConn, err = postgres.NewPostgresDB(dbConfig)
 	}
 	userRepo, _ := user_repo.NewUserRepo(dbConn)
 	forumRepo, _ := forum_repo.NewForumRepo(dbConn)
