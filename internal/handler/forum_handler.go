@@ -2,15 +2,22 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/db-forum.git/pkg/forum_errors"
 	"github.com/db-forum.git/pkg/models"
 	"github.com/db-forum.git/pkg/utils"
 	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 func (h *Handler) CreateForum(writer http.ResponseWriter, request *http.Request) {
+	start := time.Now()
+
+	defer func() {
+		fmt.Printf("CreateForum Function execution took %s\n", time.Since(start))
+	}()
 	newForum := models.Forum{}
 	err := json.NewDecoder(request.Body).Decode(&newForum)
 
@@ -32,6 +39,11 @@ func (h *Handler) CreateForum(writer http.ResponseWriter, request *http.Request)
 	utils.JSONResponse(writer, http.StatusCreated, createdForum)
 }
 func (h *Handler) GetForum(writer http.ResponseWriter, request *http.Request) {
+	start := time.Now()
+
+	defer func() {
+		fmt.Printf("GetForum Function execution took %s\n", time.Since(start))
+	}()
 	vars := mux.Vars(request)
 	slug, ok := vars[Slug]
 	if !ok {
@@ -51,6 +63,11 @@ func (h *Handler) GetForum(writer http.ResponseWriter, request *http.Request) {
 	utils.JSONResponse(writer, http.StatusOK, forum)
 }
 func (h *Handler) CreateThreadInForum(writer http.ResponseWriter, request *http.Request) {
+	start := time.Now()
+
+	defer func() {
+		fmt.Printf("CreateThreadInForum Function execution took %s\n", time.Since(start))
+	}()
 	vars := mux.Vars(request)
 	slug, ok := vars[Slug]
 	if !ok {
@@ -81,6 +98,11 @@ func (h *Handler) CreateThreadInForum(writer http.ResponseWriter, request *http.
 	utils.JSONResponse(writer, http.StatusCreated, newThread)
 }
 func (h *Handler) GetUsersOfForum(writer http.ResponseWriter, request *http.Request) {
+	start := time.Now()
+
+	defer func() {
+		fmt.Printf("GetUsersOfForum Function execution took %s\n", time.Since(start))
+	}()
 	params := getRequestQueryParams(request)
 
 	users, forumErr := h.services.GetForumUsers(params.Slug, params.Limit, params.Since, params.Desc)
@@ -98,6 +120,11 @@ func (h *Handler) GetUsersOfForum(writer http.ResponseWriter, request *http.Requ
 	utils.JSONResponse(writer, http.StatusOK, users)
 }
 func (h *Handler) GetThreadsOfForum(writer http.ResponseWriter, request *http.Request) {
+	start := time.Now()
+
+	defer func() {
+		fmt.Printf("GetThreadsOfForum Function execution took %s\n", time.Since(start))
+	}()
 	params := getRequestQueryParams(request)
 
 	threads, forumErr := h.services.GetForumThreads(params.Slug, params.Limit, params.Since, params.Desc)

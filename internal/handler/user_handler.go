@@ -8,9 +8,15 @@ import (
 	"github.com/db-forum.git/pkg/utils"
 	"github.com/gorilla/mux"
 	"net/http"
+	"time"
 )
 
 func (h *Handler) GetUser(writer http.ResponseWriter, request *http.Request) {
+	start := time.Now()
+
+	defer func() {
+		fmt.Printf("GetUser Function execution took %s\n", time.Since(start))
+	}()
 	vars := mux.Vars(request)
 	nickname, ok := vars[Nickname]
 	if !ok {
@@ -35,6 +41,11 @@ func (h *Handler) GetUser(writer http.ResponseWriter, request *http.Request) {
 }
 
 func (h *Handler) UpdateUser(writer http.ResponseWriter, request *http.Request) {
+	start := time.Now()
+
+	defer func() {
+		fmt.Printf("UpdateUser Function execution took %s\n", time.Since(start))
+	}()
 	vars := mux.Vars(request)
 	nickname, ok := vars[Nickname]
 	if !ok {
@@ -71,6 +82,11 @@ func (h *Handler) UpdateUser(writer http.ResponseWriter, request *http.Request) 
 }
 
 func (h *Handler) CreateUser(writer http.ResponseWriter, request *http.Request) {
+	start := time.Now()
+
+	defer func() {
+		fmt.Printf("CreateUser Function execution took %s\n", time.Since(start))
+	}()
 	vars := mux.Vars(request)
 	nickname, ok := vars[Nickname]
 	if !ok {

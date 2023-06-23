@@ -10,9 +10,16 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func (h *Handler) CreatePosts(writer http.ResponseWriter, request *http.Request) {
+
+	start := time.Now()
+
+	defer func() {
+		fmt.Printf("CreatePosts Function execution took %s\n", time.Since(start))
+	}()
 	posts := models.Posts{}
 
 	err := json.NewDecoder(request.Body).Decode(&posts)
@@ -54,6 +61,11 @@ func (h *Handler) CreatePosts(writer http.ResponseWriter, request *http.Request)
 }
 
 func (h *Handler) Vote(writer http.ResponseWriter, request *http.Request) {
+	start := time.Now()
+
+	defer func() {
+		fmt.Printf("Vote Function execution took %s\n", time.Since(start))
+	}()
 	vote := models.Vote{}
 	err := json.NewDecoder(request.Body).Decode(&vote)
 
@@ -102,6 +114,11 @@ func getUpdateThreadData(request *http.Request) (data updateThreadData) {
 }
 
 func (h *Handler) UpdateThread(writer http.ResponseWriter, request *http.Request) {
+	start := time.Now()
+
+	defer func() {
+		fmt.Printf("UpdateThread Function execution took %s\n", time.Since(start))
+	}()
 	updateData := getUpdateThreadData(request)
 
 	thread, threadErr := h.services.UpdateThread(updateData.SlugOrId, updateData.ThreadUpdate)
@@ -147,6 +164,11 @@ func getGetPostParams(request *http.Request) (params getPostParams) {
 	return params
 }
 func (h *Handler) GetPost(writer http.ResponseWriter, request *http.Request) {
+	start := time.Now()
+
+	defer func() {
+		fmt.Printf("GetPost Function execution took %s\n", time.Since(start))
+	}()
 	params := getGetPostParams(request)
 
 	fullPost, threadErr := h.services.GetPost(params.Id, params.RelatedUser, params.RelatedThread, params.RelatedForum)
@@ -179,6 +201,11 @@ func getUpdatePostParams(request *http.Request) (params updatePostParams) {
 }
 
 func (h *Handler) UpdatePost(writer http.ResponseWriter, request *http.Request) {
+	start := time.Now()
+
+	defer func() {
+		fmt.Printf("UpdatePost Function execution took %s\n", time.Since(start))
+	}()
 	params := getUpdatePostParams(request)
 
 	post, threadErr := h.services.UpdatePost(params.Id, params.PostUpdate)
@@ -194,6 +221,11 @@ func (h *Handler) UpdatePost(writer http.ResponseWriter, request *http.Request) 
 }
 
 func (h *Handler) GetThread(writer http.ResponseWriter, request *http.Request) {
+	start := time.Now()
+
+	defer func() {
+		fmt.Printf("GetThread Function execution took %s\n", time.Since(start))
+	}()
 	vars := mux.Vars(request)
 	slugOrId, _ := vars[SlugOrId]
 
@@ -212,6 +244,11 @@ func (h *Handler) GetThread(writer http.ResponseWriter, request *http.Request) {
 }
 
 func (h *Handler) GetPosts(writer http.ResponseWriter, request *http.Request) {
+	start := time.Now()
+
+	defer func() {
+		fmt.Printf("GetPosts Function execution took %s\n", time.Since(start))
+	}()
 	params := getGetPostsRequestQueryParams(request)
 	posts, threadErr := h.services.GetPosts(params.SlugOrId, params.Limit, params.Sort, params.Desc, params.Since)
 	if threadErr != nil {

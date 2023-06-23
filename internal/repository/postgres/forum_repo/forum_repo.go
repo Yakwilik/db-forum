@@ -179,7 +179,7 @@ func (f *ForumRepo) GetForumUsers(slug string, limit int, since string, desc boo
 	values := []interface{}{slug}
 	sinceQuery := ""
 	if since != "" {
-		sinceQuery = "where users.nickname "
+		sinceQuery = " and users.nickname "
 		if desc {
 			sinceQuery += "< $2 "
 		} else {
@@ -198,9 +198,9 @@ func (f *ForumRepo) GetForumUsers(slug string, limit int, since string, desc boo
 
 	query := fmt.Sprintf("select "+
 		"users.nickname, users.nickname, users.fullname, users.about, users.email "+
-		"from users INNER JOIN "+
-		"(SELECT DISTINCT author from posts where forum = $1 UNION SELECT DISTINCT author from threads where forum = $1) "+
-		"as authors on users.nickname = authors.author %s;", sinceQuery)
+		"from users where users.nickname in "+
+		"(SELECT author from posts where forum = $1 UNION ALL SELECT author from threads where forum = $1) "+
+		"%s;", sinceQuery)
 
 	queryResult, err := f.db.Query(query, values...)
 
