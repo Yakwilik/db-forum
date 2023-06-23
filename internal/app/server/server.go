@@ -23,7 +23,7 @@ type Server struct {
 }
 
 func NewServer(config Config, handler http.Handler) *Server {
-	addr := fmt.Sprintf("%s:%d", config.Host, config.Port)
+	addr := fmt.Sprintf(":%d", config.Port)
 	log.Println(addr)
 	s := &Server{httpServer: &http.Server{
 		Addr:              addr,
