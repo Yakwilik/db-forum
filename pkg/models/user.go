@@ -1,3 +1,4 @@
+//go:generate easyjson -all user.go
 package models
 
 type UserUpdate struct {
@@ -11,4 +12,5 @@ type User struct {
 	UserUpdate
 }
 
+//easyjson:json
 type Users []User

@@ -1,3 +1,4 @@
+//go:generate easyjson -all status.go
 package models
 
 type Status struct {

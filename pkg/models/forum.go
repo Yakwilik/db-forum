@@ -1,3 +1,5 @@
+//go:generate easyjson -all forum.go
+
 package models
 
 type Forum struct {

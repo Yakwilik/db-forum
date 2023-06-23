@@ -9,9 +9,7 @@ CREATE TABLE IF NOT EXISTS
         email citext NOT NULL UNIQUE
 );
 
--- CREATE INDEX idx_users_nickname ON users USING HASH (nickname);
--- -- CREATE INDEX idx_users_nickname_btree ON users USING btree (nickname varchar_pattern_ops);
--- -- CREATE INDEX idx_users_email ON users USING HASH (email);
+
 
 
 CREATE TABLE IF NOT EXISTS
@@ -23,7 +21,6 @@ CREATE TABLE IF NOT EXISTS
         threads int DEFAULT 0
 );
 
--- CREATE INDEX idx_forums_slug ON forums USING HASH (slug);
 
 CREATE TABLE IF NOT EXISTS
     threads (
@@ -37,8 +34,6 @@ CREATE TABLE IF NOT EXISTS
         votes integer DEFAULT 0
 );
 
--- CREATE INDEX idx_threads_id_hash ON threads USING hash (id);
--- CREATE INDEX idx_threads_created ON threads USING btree (created);
 
 
 CREATE TABLE IF NOT EXISTS
@@ -54,10 +49,6 @@ CREATE TABLE IF NOT EXISTS
         path bigint[] DEFAULT ARRAY []::INTEGER[]
 );
 
--- CREATE INDEX idx_posts_id ON posts USING hash (id);
--- CREATE INDEX idx_posts_id_btree ON posts using btree (id);
--- CREATE INDEX idx_posts_created ON posts using btree (created);
--- CREATE INDEX idx_posts_path ON posts using btree (path);
 
 CREATE TABLE IF NOT EXISTS
     votes (
@@ -213,7 +204,20 @@ CREATE INDEX IF NOT EXISTS forum_slug_hash ON forums USING hash (slug);
 CREATE INDEX IF NOT EXISTS forum_user_hash ON forums USING hash ("user");
 
 
+CREATE INDEX IF NOT EXISTS idx_posts_id ON posts USING hash (id);
+CREATE INDEX idx_posts_id_btree ON posts using btree (id);
 CREATE INDEX IF NOT EXISTS post_thread ON posts USING hash (thread_id);
 CREATE INDEX IF NOT EXISTS post_parent ON posts (thread_id, id, (path[1]), parent);
 CREATE INDEX IF NOT EXISTS post_path_1_path ON posts ((path[1]), path);
 CREATE INDEX IF NOT EXISTS post_thread_path ON posts (thread_id, path);
+
+
+CREATE INDEX idx_posts_created ON posts using btree (created);
+CREATE INDEX idx_posts_path ON posts using btree (path);
+
+CREATE INDEX idx_forums_slug ON forums USING HASH (slug);
+CREATE INDEX idx_threads_id_hash ON threads USING hash (id);
+CREATE INDEX idx_threads_created ON threads USING btree (created);
+CREATE INDEX idx_users_nickname ON users USING HASH (nickname);
+CREATE INDEX idx_users_nickname_btree ON users USING btree (nickname varchar_pattern_ops);
+CREATE INDEX idx_users_email ON users USING HASH (email);

@@ -1,3 +1,4 @@
+//go:generate easyjson -all vote.go
 package models
 
 type VoteValue int32

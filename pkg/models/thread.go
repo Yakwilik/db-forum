@@ -1,3 +1,4 @@
+//go:generate easyjson -all thread.go
 package models
 
 type ThreadUpdate struct {
@@ -15,4 +16,5 @@ type Thread struct {
 	Created string `json:"created"`
 }
 
+//easyjson:json
 type Threads []Thread

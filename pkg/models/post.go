@@ -1,3 +1,4 @@
+//go:generate easyjson -all post.go
 package models
 
 type PostUpdate struct {
@@ -15,6 +16,7 @@ type Post struct {
 	Created  string `json:"created"`
 }
 
+//easyjson:json
 type Posts []Post
 
 type PostFull struct {
