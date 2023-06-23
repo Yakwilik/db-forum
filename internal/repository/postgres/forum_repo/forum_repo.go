@@ -179,7 +179,7 @@ func (f *ForumRepo) GetForumUsers(slug string, limit int, since string, desc boo
 	values := []interface{}{slug}
 	sinceQuery := ""
 	if since != "" {
-		sinceQuery = " and users.nickname "
+		sinceQuery = " and nickname "
 		if desc {
 			sinceQuery += "< $2 "
 		} else {
@@ -188,19 +188,15 @@ func (f *ForumRepo) GetForumUsers(slug string, limit int, since string, desc boo
 		values = append(values, since)
 	}
 	if desc {
-		sinceQuery += " order by users.nickname DESC "
+		sinceQuery += " order by nickname DESC "
 	} else {
-		sinceQuery += " order by users.nickname ASC "
+		sinceQuery += " order by nickname ASC "
 	}
 	if limit > 0 {
 		sinceQuery += fmt.Sprintf("LIMIT %d", limit)
 	}
 
-	query := fmt.Sprintf("select "+
-		"users.nickname, users.nickname, users.fullname, users.about, users.email "+
-		"from users where users.nickname in "+
-		"(SELECT author from posts where forum = $1 UNION ALL SELECT author from threads where forum = $1) "+
-		"%s;", sinceQuery)
+	query := fmt.Sprintf("select nickname, fullname, about, email from user_forums where forum = $1 %s;", sinceQuery)
 
 	queryResult, err := f.db.Query(query, values...)
 

@@ -9,9 +9,9 @@ CREATE TABLE IF NOT EXISTS
         email citext NOT NULL UNIQUE
 );
 
-CREATE INDEX idx_users_nickname ON users USING HASH (nickname);
--- CREATE INDEX idx_users_nickname_btree ON users USING btree (nickname varchar_pattern_ops);
--- CREATE INDEX idx_users_email ON users USING HASH (email);
+-- CREATE INDEX idx_users_nickname ON users USING HASH (nickname);
+-- -- CREATE INDEX idx_users_nickname_btree ON users USING btree (nickname varchar_pattern_ops);
+-- -- CREATE INDEX idx_users_email ON users USING HASH (email);
 
 
 CREATE TABLE IF NOT EXISTS
@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS
         threads int DEFAULT 0
 );
 
-CREATE INDEX idx_forums_slug ON forums USING HASH (slug);
+-- CREATE INDEX idx_forums_slug ON forums USING HASH (slug);
 
 CREATE TABLE IF NOT EXISTS
     threads (
@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS
         votes integer DEFAULT 0
 );
 
-CREATE INDEX idx_threads_id_hash ON threads USING hash (id);
+-- CREATE INDEX idx_threads_id_hash ON threads USING hash (id);
 -- CREATE INDEX idx_threads_created ON threads USING btree (created);
 
 
@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS
         path bigint[] DEFAULT ARRAY []::INTEGER[]
 );
 
-CREATE INDEX idx_posts_id ON posts USING hash (id);
+-- CREATE INDEX idx_posts_id ON posts USING hash (id);
 -- CREATE INDEX idx_posts_id_btree ON posts using btree (id);
 -- CREATE INDEX idx_posts_created ON posts using btree (created);
 -- CREATE INDEX idx_posts_path ON posts using btree (path);
@@ -65,6 +65,17 @@ CREATE TABLE IF NOT EXISTS
         thread_id bigserial NOT NULL REFERENCES threads(id),
         voice int NOT NULL,
         CONSTRAINT user_thread_key unique (user_nickname, thread_id)
+);
+
+CREATE UNLOGGED TABLE IF NOT EXISTS user_forums
+(
+
+    nickname citext COLLATE "ucs_basic" NOT NULL REFERENCES users (nickname),
+    forum    citext                     NOT NULL REFERENCES forums (slug),
+    fullname text,
+    about    text,
+    email    citext,
+    CONSTRAINT user_forum_key unique (nickname, forum)
 );
 
 
@@ -155,3 +166,54 @@ CREATE TRIGGER check_update_message
     BEFORE UPDATE OF message ON posts
     FOR EACH ROW
 EXECUTE PROCEDURE update_is_edited();
+
+
+--- Пользователи форума
+
+CREATE OR REPLACE FUNCTION function_update_user_forum()
+    RETURNS TRIGGER AS
+
+-- info posts, threads
+$$
+DECLARE
+    _nickname citext;
+    _fullname text;
+    _about    text;
+    _email    citext;
+BEGIN
+    SELECT u.nickname, u.fullname, u.about, u.email
+    FROM users u
+    WHERE u.nickname = NEW.author
+    INTO _nickname, _fullname, _about, _email;
+
+    INSERT INTO user_forums (nickname, fullname, about, email, forum)
+    VALUES (_nickname, _fullname, _about, _email, NEW.forum)
+    ON CONFLICT DO NOTHING;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER update_user_forum
+    AFTER INSERT
+    ON threads
+    FOR EACH ROW
+EXECUTE PROCEDURE function_update_user_forum();
+
+CREATE TRIGGER update_users_forum
+    AFTER INSERT
+    ON posts
+    FOR EACH ROW
+EXECUTE PROCEDURE function_update_user_forum();
+
+
+
+------------ Индексы
+
+CREATE INDEX IF NOT EXISTS forum_slug_hash ON forums USING hash (slug);
+CREATE INDEX IF NOT EXISTS forum_user_hash ON forums USING hash ("user");
+
+
+CREATE INDEX IF NOT EXISTS post_thread ON posts USING hash (thread_id);
+CREATE INDEX IF NOT EXISTS post_parent ON posts (thread_id, id, (path[1]), parent);
+CREATE INDEX IF NOT EXISTS post_path_1_path ON posts ((path[1]), path);
+CREATE INDEX IF NOT EXISTS post_thread_path ON posts (thread_id, path);

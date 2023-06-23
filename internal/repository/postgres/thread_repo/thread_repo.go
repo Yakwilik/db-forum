@@ -122,11 +122,22 @@ func (t *ThreadRepo) GetPostsByThreadIdTreeParent(threadId int64, limit int, sin
 		threadErr.Reason = err
 		return posts, threadErr
 	}
-	err = scan.Rows(&posts, rows)
-	if err != nil {
-		threadErr.Reason = err
-		return posts, threadErr
+	for rows.Next() {
+		post := models.Post{}
+
+		err = rows.Scan(&post.Id, &post.Parent, &post.Author, &post.Forum, &post.Message, &post.IsEdited, &post.Created, &post.Thread)
+		if err != nil {
+			threadErr.Reason = err
+			return posts, threadErr
+		}
+		posts = append(posts, post)
+
 	}
+	//err = scan.Rows(&posts, rows)
+	//if err != nil {
+	//	threadErr.Reason = err
+	//	return posts, threadErr
+	//}
 	return posts, nil
 }
 
@@ -164,11 +175,22 @@ func (t *ThreadRepo) GetPostsByThreadIdTree(threadId int64, limit int, since int
 		threadErr.Reason = err
 		return posts, threadErr
 	}
-	err = scan.Rows(&posts, rows)
-	if err != nil {
-		threadErr.Reason = err
-		return posts, threadErr
+	for rows.Next() {
+		post := models.Post{}
+
+		err = rows.Scan(&post.Id, &post.Parent, &post.Author, &post.Forum, &post.Message, &post.IsEdited, &post.Created, &post.Thread)
+		if err != nil {
+			threadErr.Reason = err
+			return posts, threadErr
+		}
+		posts = append(posts, post)
+
 	}
+	//err = scan.Rows(&posts, rows)
+	//if err != nil {
+	//	threadErr.Reason = err
+	//	return posts, threadErr
+	//}
 	return posts, nil
 
 }
@@ -205,11 +227,22 @@ func (t *ThreadRepo) GetPostsByThreadIdFlat(threadId int64, limit int, since int
 		threadErr.Reason = err
 		return posts, threadErr
 	}
-	err = scan.Rows(&posts, rows)
-	if err != nil {
-		threadErr.Reason = err
-		return posts, threadErr
+	for rows.Next() {
+		post := models.Post{}
+
+		err = rows.Scan(&post.Id, &post.Parent, &post.Author, &post.Forum, &post.Message, &post.IsEdited, &post.Created, &post.Thread)
+		if err != nil {
+			threadErr.Reason = err
+			return posts, threadErr
+		}
+		posts = append(posts, post)
+
 	}
+	//err = scan.Rows(&posts, rows)
+	//if err != nil {
+	//	threadErr.Reason = err
+	//	return posts, threadErr
+	//}
 	return posts, nil
 }
 

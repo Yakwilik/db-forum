@@ -246,10 +246,11 @@ func (h *Handler) GetThread(writer http.ResponseWriter, request *http.Request) {
 func (h *Handler) GetPosts(writer http.ResponseWriter, request *http.Request) {
 	start := time.Now()
 
-	defer func() {
-		fmt.Printf("GetPosts Function execution took %s\n", time.Since(start))
-	}()
 	params := getGetPostsRequestQueryParams(request)
+
+	defer func() {
+		fmt.Printf("GetPosts Function with sort = %s execution took %s\n", params.Sort, time.Since(start))
+	}()
 	posts, threadErr := h.services.GetPosts(params.SlugOrId, params.Limit, params.Sort, params.Desc, params.Since)
 	if threadErr != nil {
 		switch threadErr.Code {
