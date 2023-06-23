@@ -13,15 +13,17 @@ COPY --from=builder /app/db /app/db
 COPY --from=builder /app/db/db.sql /docker-entrypoint-initdb.d/db.sql
 ENV POSTGRES_PASSWORD=mysecretpassword
 
-# Install the `supervisord`
+## Install the `supervisord`
 RUN apk add --no-cache supervisor
 
 EXPOSE 5432
 EXPOSE 5000
+EXPOSE 5050
 EXPOSE 9001
 
-# Copy supervisor configuration
+## Copy supervisor configuration
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+#CMD docker-entrypoint.sh postgres && /app/app
 # Run the command
