@@ -28,6 +28,8 @@ func NewPostgresDB(cfg Config) (*sql.DB, error) {
 		return nil, err
 	}
 	err = db.Ping()
+	db.SetMaxOpenConns(1000)
+	db.SetMaxIdleConns(100)
 	if err != nil {
 		return nil, err
 	}
